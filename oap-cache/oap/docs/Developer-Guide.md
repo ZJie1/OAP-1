@@ -48,7 +48,7 @@ Install the required packages on the build system:
 - [Memkind](https://github.com/Intel-bigdata/memkind)
 - [vmemcache](https://github.com/pmem/vmemcache)
 
-###### build and install memkind
+##### build and install memkind
  The Memkind library depends on `libnuma` at the runtime, so it must already exist in the worker node system. 
    Build the latest memkind lib from source:
 
@@ -60,7 +60,7 @@ cd memkind
 make
 make install
    ``` 
-###### build and install vmemcache
+##### build and install vmemcache
 
 To build vmemcache lib from source, you can (for RPM-based linux as example):
 ```
@@ -72,7 +72,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCPACK_GENERATOR=rpm
 make package
 sudo rpm -i libvmemcache*.rpm
 ```
-###### build and install plasma
+##### build and install plasma
 To use optimized Plasma cache with OAP, you need following components:  
     (1) libarrow.so, libplasma.so, libplasma_jni.so: dynamic libraries, will be used in plasma client.   
     (2) plasma-store-server: executable file, plasma cache service.  

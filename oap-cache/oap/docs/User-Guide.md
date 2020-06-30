@@ -205,17 +205,17 @@ The following are required to configure OAP to use DCPMM cache.
 - Directories exposing DCPMM hardware on each socket. For example, on a two socket system the mounted DCPMM directories should appear as `/mnt/pmem0` and `/mnt/pmem1`. Correctly installed DCPMM must be formatted and mounted on every cluster worker node.
 
    ```
-   // use impctl command to show topology and dimm info of DCPM
-   impctl show -topology
-   impctl show -dimm
+   // use ipmctl command to show topology and dimm info of DCPM
+   ipmctl show -topology
+   ipmctl show -dimm
    // provision dcpm in app direct mode
    ipmctl create -goal PersistentMemoryType=AppDirect
    // reboot system to make configuration take affect
    reboot
    // check capacity provisioned for app direct mode(AppDirectCapacity)
-   impctl show -memoryresources
+   ipmctl show -memoryresources
    // show the DCPM region information
-   impctl show -region
+   ipmctl show -region
    // create namespace based on the region, multi namespaces can be created on a single region
    ndctl create-namespace -m fsdax -r region0
    ndctl create-namespace -m fsdax -r region1

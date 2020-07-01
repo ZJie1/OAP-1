@@ -222,6 +222,8 @@ The following are required to configure OAP to use DCPMM cache.
    // show the created namespaces
    fdisk -l
    // create and mount file system
+   echo y | mkfs.ext4 /dev/pmem0
+   echo y | mkfs.ext4 /dev/pmem1
    mount -o dax /dev/pmem0 /mnt/pmem0
    mount -o dax /dev/pmem1 /mnt/pmem1
    ```

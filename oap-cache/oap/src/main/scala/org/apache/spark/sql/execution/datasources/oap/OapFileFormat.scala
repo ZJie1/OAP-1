@@ -44,6 +44,12 @@ private[sql] class OapFileFormat extends FileFormat
   with Logging
   with Serializable {
 
+  override def toString: String = "OAP"
+
+  override def hashCode(): Int = getClass.hashCode()
+
+  override def equals(other: Any): Boolean = other.isInstanceOf[OapFileFormat]
+
   // exposed for test
   private[oap] lazy val oapMetrics = OapRuntime.getOrCreate.oapMetricsManager
 

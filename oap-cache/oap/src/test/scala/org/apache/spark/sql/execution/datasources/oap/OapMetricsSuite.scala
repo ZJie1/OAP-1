@@ -18,6 +18,7 @@
 package org.apache.spark.sql.execution.datasources.oap
 
 import org.scalatest.BeforeAndAfterEach
+
 import org.apache.spark.sql.{QueryTest, Row}
 import org.apache.spark.sql.execution.metric.SQLMetric
 import org.apache.spark.sql.internal.oap.OapConf

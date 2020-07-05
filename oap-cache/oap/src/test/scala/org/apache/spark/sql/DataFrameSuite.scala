@@ -74,6 +74,7 @@ class DataFrameSuite extends QueryTest
         join2.queryExecution.executedPlan
           .collect { case _: ReusedExchangeExec => true }.size == 4)
     }
+    sqlContext.dropTempTable("parquet_test")
   }
 
   test("reuse exchange") {

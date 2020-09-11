@@ -21,11 +21,11 @@
 package org.apache.spark.sql
 
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-
 import sys.process._
 
 abstract class OapTestSuite extends BenchmarkConfigSelector with OapPerfSuiteContext with Logging {
@@ -90,7 +90,12 @@ case class resultset(conf:String,
   def resToDF(resultMap: mutable.LinkedHashMap[String, Seq[(String, Array[Int])]], spark: SparkSession)= {
     import spark.implicits._
     import org.apache.spark.sql.functions._
+    import org.apache.spark.sql.functions.udf
+
+    val stringify = udf((vs: Seq[String]) => s"""${vs.mkString(",")}""")
+
     val res = resultMap.toSeq
+    var dfMap= Map("key"->spark.emptyDataFrame)
     if (res.nonEmpty) {
       res.foreach { result =>
         val header =
@@ -118,6 +123,7 @@ case class resultset(conf:String,
           println(s"each value of content is ")
           cont.foreach(x => print(x + " ;"))
         }
+
         val contentDf = content.toDF
         println(s"\n\n------------------the content df is : \n\n")
         contentDf.show
@@ -127,35 +133,71 @@ case class resultset(conf:String,
         println(s"\n\n------------------the header df is : \n\n")
         header2Df.show
 
-        val len = result._2(0)._2.length + 2
-        val idcolumm = col(mkIDs(len).toString())
-        val indexHeader = header2Df.withColumn("index",idcolumm.as(mkIDs(5)))
-        val header2DfAs = header2Df.alias("headerConf")
-        //var resultDf = header2Df
-        //resultDf = resultDf.unionAll(header2Df)
-        // resultDf.show
-        (0 until 4).map (i =>
-          header2Df("confs")+ i)
-        header2Df.foreach(x=>
-          //var xss = x.toSeq
+        //combine header and content to the Seq[Seq[String]]
+        val comb = Seq(header) ++ content
+        comb.toDF.show
+        // split comb to repeatTimes +2 columns
+        val colNums = result._2(0)._2.length + 2
+        val attrs = Array.tabulate(colNums)(n => "col_" + n)
 
-          for( i <- 0 until x.length){
-            x(1) + i
-          }
-          /*x.toSeq.foreach{col =>
-            print(col)
-            println()
-        } */
-        )
+        var newDf = comb.toDF("res")
+        attrs.zipWithIndex.foreach(x => {
+          newDf = newDf.withColumn(x._1,$"res".getItem(x._2))
+        })
+        newDf.show
+
+        val key = result._1
+
+        val tmpDfMap = Map(key -> newDf)
+        dfMap = dfMap ++ tmpDfMap
+        tmpDfMap.keys.foreach{i =>
+          println("key is :" + i)
+          println("value is :" + tmpDfMap(i))
+        }
+/*        // write it to the csv file
+        val resPath = "file:///home/sparkuser/GIT/OAP/resCsv/3.csv"
+        newDf.withColumn("res", stringify($"res"))
+          .write
+          .option("header","true")
+          .mode("append")
+          .csv(resPath)
+
+        // one line one csv
+        val csvDf = newDf.drop("res")
+        csvDf
+          .write
+          .format("com.databricks.spark.csv")
+          .option("header","true")
+          .mode("append")
+          .save(s"myfile_$key 4.csv")
+
+        //parquet file
+        csvDf
+          .write
+          .option("header","true")
+          .mode("append")
+          .save(s"myfile_$key 5")
+
+        // one line one csv
+        csvDf
+          .write
+          .option("header","true")
+          .mode("append")
+          .csv(s"myfile_$key 2")*/
+
         content.foreach { cont1 =>
+          val combinelist  = Seq(header, cont1)
+          combinelist.toDF.show
+
           println(s"-------------the res of the each cont in the content   Seq")
 
           val cont2Df = cont1.toDF("times")
+          //cont2Df.append(header2Df)
           //resultDf = resultDf.unionAll(cont2Df)
           print(cont2Df.dtypes)
           cont2Df.show
-          val resultDf = header2Df.join(cont2Df)
-          resultDf.show
+/*          val resultDf = header2Df.join(cont2Df)
+          resultDf.show*/
           /*val resultDf = cont2Df.withColumn("test",header2Df.col(header.toString()))
           resultDf.show*/
           /*val resultDf1 = cont2Df.withColumn("test",header2DfAs.col("confs"))
@@ -166,6 +208,21 @@ case class resultset(conf:String,
       /*  println(s"\n\n--------------------After ALL, the resDf is ")
         resultDf.show*/
       }
+      println(s"\n\n--------------------After ALL, the resDfMap is ")
+      dfMap.keys.foreach{i =>
+        println("key is :" + i)
+        println("value is :" + dfMap(i))
+      }
+
+      /*val resDf = dfMap.toSeq.toDF
+      resDf.show*/
+
+      /*val resPath = "file:///home/sparkuser/GIT/OAP/resCsv/4"
+      resDf.withColumn("res", stringify($"res"))
+        .write
+        .option("header","true")
+        .mode("append")
+        .csv(resPath)*/
     }
   }
 

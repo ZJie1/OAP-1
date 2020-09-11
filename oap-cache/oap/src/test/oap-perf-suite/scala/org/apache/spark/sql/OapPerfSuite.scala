@@ -153,6 +153,7 @@ object OapPerfSuite extends Logging {
           } else {
             suite.runAll(repeat)
           }
+          // add assert for each suite if necessary
         }
       }
 

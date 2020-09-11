@@ -83,11 +83,15 @@ object LocalSparkMasterTestSuite extends OapTestSuite with LocalClusterConfigSet
 
   override def testSet = Seq(
     OapBenchmarkTest("eq = 1",
-      s"SELECT * FROM $tableName WHERE $attr = 1"),
+      s"SELECT * FROM $tableName WHERE $attr = 1",verifyFunction),
     OapBenchmarkTest("eq = 2",
-      s"SELECT * FROM $tableName WHERE $attr = 2"),
+      s"SELECT * FROM $tableName WHERE $attr = 2",verifyFunction),
     OapBenchmarkTest("check how many char can be displayed in name column-54--------64-----",
-      s"SELECT * FROM $tableName WHERE $attr = 2")
+      s"SELECT * FROM $tableName WHERE $attr = 2",verifyFunction)
 
   )
+
+  def verifyFunction(): Unit = {
+    logWarning(s"add function params")
+  }
 }

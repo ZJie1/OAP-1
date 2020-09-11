@@ -16,6 +16,7 @@
  */
 package org.apache.spark.sql.suites
 
+import org.apache.spark.{SparkContext, SparkStageInfo, SparkStatusTracker}
 import org.apache.spark.sql._
 import org.apache.spark.sql.internal.oap.OapConf
 
@@ -27,7 +28,7 @@ object simpleSuite
 
   val attr = "ss_item_sk"
 
-  def databaseName = "parquet5"
+  def databaseName = "tpcds_10g_snappy"
 
   private def isDataBaseReady: Boolean = {
     val dbCandidates = spark.sqlContext.sql(s"show databases").collect()
@@ -71,6 +72,30 @@ object simpleSuite
      */
     override def testSet = Seq(
       OapBenchmarkTest("simple test",
-        s"SELECT SUM($attr) FROM $table")
+        s"SELECT SUM($attr) FROM $table",verifyFunction),
+      OapBenchmarkTest("JIRA 333 ID 444",
+        s"SELECT AVG($attr) FROM $table",verify2)
      )
+
+   def verifyFunction(): Unit = {
+    def sc : SparkContext = spark.sparkContext
+    def statusTracker : SparkStatusTracker = sc.statusTracker
+    def stageInfo : Option[SparkStageInfo] = statusTracker.getStageInfo(0)
+    val tasknums : Int  = stageInfo.get.numTasks()
+    logWarning(s"tasknum for stage 0 is $tasknums")
+    assert(tasknums == 4)
+    logWarning(s"assert is successfully")
+  }
+
+  def verify2(): Unit = {
+    // add assert here
+
+    def sc : SparkContext = spark.sparkContext
+    def statusTracker : SparkStatusTracker = sc.statusTracker
+    def stageInfo : Option[SparkStageInfo] = statusTracker.getStageInfo(2)
+    val tasknums : Int  = stageInfo.get.numTasks()
+    logWarning(s"tasknum for stage 2 is $tasknums")
+    assert(tasknums == 1)
+    logWarning(s"assert is successfully")
+  }
 }
